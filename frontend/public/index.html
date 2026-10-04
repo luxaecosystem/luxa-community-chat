@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>LUXA Community Chat - Select Country</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="join-container">
+    <header class="join-header">
+      <h1>🌐 LUXA COMMUNITY</h1>
+      <p>Connect to the sovereign multi-language network</p>
+    </header>
+
+    <main class="join-main">
+      <form action="chat.html" method="GET" id="joinForm">
+        <div class="form-control">
+          <label for="username">Miner Handle / Nickname</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            class="form-input"
+            placeholder="Enter handle or @username..."
+            required
+            maxlength="25"
+          />
+        </div>
+
+        <div class="form-control">
+          <div class="country-grid-label">
+            <label>Select Room / Country</label>
+            <input
+              type="text"
+              id="countrySearch"
+              class="country-search-input"
+              placeholder="🔍 Search country..."
+              oninput="filterCountries()"
+            />
+          </div>
+
+          <div class="country-grid" id="countryGrid">
+            <!-- I paesi verranno popolati automaticamente dallo script sotto -->
+          </div>
+        </div>
+
+        <!-- Parametri inviati a chat.html -->
+        <input type="hidden" name="room" id="selectedRoom" value="Global" />
+        <input type="hidden" name="code" id="selectedCode" value="un" />
+
+        <button type="submit" class="btn-submit">⚡ ENTER COMMUNITY CHAT</button>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    // Lista delle stanze collegate alle bandiere SVG presenti nella cartella flags/1x1/
+    const countries = [
+      { name: "Global / World", code: "un", room: "Global" },
+      { name: "Morocco", code: "ma", room: "Morocco" },
+      { name: "Saudi Arabia", code: "sa", room: "Arabic" },
+      { name: "United Arab Emirates", code: "ae", room: "UAE" },
+      { name: "Italy", code: "it", room: "Italiano" },
+      { name: "France", code: "fr", room: "Français" },
+      { name: "Spain", code: "es", room: "Español" },
+      { name: "United Kingdom", code: "gb", room: "English-UK" },
+      { name: "United States", code: "us", room: "English-US" },
+      { name: "Germany", code: "de", room: "Deutsch" },
+      { name: "Turkey", code: "tr", room: "Türkçe" },
+      { name: "Egypt", code: "eg", room: "Egypt" },
+      { name: "Algeria", code: "dz", room: "Algeria" },
+      { name: "Tunisia", code: "tn", room: "Tunisia" },
+      { name: "Qatar", code: "qa", room: "Qatar" },
+      { name: "Russia", code: "ru", room: "Русский" },
+      { name: "Brazil", code: "br", room: "Brasil" },
+      { name: "China", code: "cn", room: "Chinese" },
+      { name: "Japan", code: "jp", room: "Japanese" },
+      { name: "South Korea", code: "kr", room: "Korean" },
+      { name: "India", code: "in", room: "India" }
+    ];
+
+    let currentSelectedCode = 'un';
+
+    function renderCountries(list) {
+      const grid = document.getElementById('countryGrid');
+      grid.innerHTML = '';
+
+      list.forEach(c => {
+        const card = document.createElement('div');
+        card.className = `country-card ${c.code === currentSelectedCode ? 'active' : ''}`;
+        card.onclick = () => selectCountry(c.room, c.code, card);
+
+        card.innerHTML = `
+          <img src="flags/1x1/${c.code}.svg" alt="${c.name}" class="country-flag" onerror="this.src='flags/1x1/un.svg'">
+          <span class="country-name" title="${c.name}">${c.name}</span>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function selectCountry(room, code, element) {
+      currentSelectedCode = code;
+      document.getElementById('selectedRoom').value = room;
+      document.getElementById('selectedCode').value = code;
+
+      document.querySelectorAll('.country-card').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      }
+    }
+
+    function filterCountries() {
+      const query = document.getElementById('countrySearch').value.toLowerCase().trim();
+      const filtered = countries.filter(c => c.name.toLowerCase().includes(query) || c.room.toLowerCase().includes(query));
+      renderCountries(filtered);
+    }
+
+    // Rileva in automatico l'utente da Telegram
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      const user = tg.initDataUnsafe?.user;
+      if (user) {
+        const input = document.getElementById('username');
+        input.value = user.username ? `@${user.username}` : (user.first_name || 'Miner');
+      }
+    }
+
+    // Inizializza griglia
+    renderCountries(countries);
+  </script>
+</body>
+</html>

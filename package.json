@@ -1,16 +1,17 @@
 {
-  "name": "chatcord",
+  "name": "luxa-community-chat",
   "version": "1.0.0",
-  "description": "Realtime chat app with rooms",
-  "main": "server.js",
+  "description": "Realtime multi-language community chat for LUXA",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node server",
-    "dev": "nodemon server"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
   },
-  "author": "Brad Traversy",
+  "author": "LUXA Ecosystem",
   "license": "MIT",
   "dependencies": {
     "@socket.io/redis-adapter": "^7.1.0",
+    "cors": "^2.8.5",
     "dotenv": "^14.3.2",
     "express": "^4.17.1",
     "moment": "^2.24.0",
