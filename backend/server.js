@@ -3,71 +3,116 @@ const http = require("http");
 const express = require("express");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const formatMessage = require("./utils/messages");
+const mongoose = require("mongoose");
+const moment = require("moment");
+require("dotenv").config();
+
 const {
   userJoin,
   getCurrentUser,
   userLeave,
   getRoomUsers,
 } = require("./utils/users");
-require("dotenv").config();
+
+// Connessione a MongoDB
+const mongoUri = process.env.MONGODB_URI;
+mongoose
+  .connect(mongoUri, { dbName: process.env.MONGODB_DB_NAME || "luxa" })
+  .then(() => console.log("MongoDB connected successfully."))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+// Schema per i messaggi della chat
+const chatMessageSchema = new mongoose.Schema({
+  room: { type: String, required: true, index: true },
+  username: { type: String, required: true },
+  text: { type: String, required: true },
+  time: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 7 }, // Pulizia automatica dopo 7 giorni
+});
+const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 
 const app = express();
 app.use(cors());
 
 const server = http.createServer(app);
 
+// Abilita esplicitamente polling e websocket
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ["polling", "websocket"]
 });
-
-const frontendDir = path.join(__dirname, "..", "frontend", "public");
-app.use(express.static(frontendDir));
 
 const botName = "LUXA Bot";
 
 io.on("connection", (socket) => {
-  socket.on("joinRoom", ({ username, room, code }) => {
+  // Ingresso in stanza
+  socket.on("joinRoom", async ({ username, room, code }) => {
     const user = userJoin(socket.id, username, room);
     user.code = code || "un";
-
     socket.join(user.room);
 
-    // Benvenuto all'utente
-    socket.emit("message", formatMessage(botName, `Welcome to the [${user.room}] community chat!`));
+    // Recupera gli ultimi 50 messaggi della stanza dal database
+    try {
+      const history = await ChatMessage.find({ room: user.room })
+        .sort({ createdAt: 1 })
+        .limit(50);
+      socket.emit("chatHistory", history);
+    } catch (e) {
+      console.error("Error fetching history:", e);
+    }
 
-    // Notifica di ingresso
-    socket.broadcast
-      .to(user.room)
-      .emit(
-        "message",
-        formatMessage(botName, `${user.username} entered the room`)
-      );
+    // Messaggio di sistema di benvenuto
+    socket.emit("message", {
+      username: botName,
+      text: `Connected to [${user.room}] community.`,
+      time: moment().format("HH:mm")
+    });
 
-    // Aggiornamento utenti
+    socket.broadcast.to(user.room).emit("message", {
+      username: botName,
+      text: `${user.username} entered the room`,
+      time: moment().format("HH:mm")
+    });
+
     io.to(user.room).emit("roomUsers", {
       room: user.room,
       users: getRoomUsers(user.room),
     });
   });
 
-  socket.on("chatMessage", (msg) => {
+  // Ricezione e salvataggio nuovo messaggio
+  socket.on("chatMessage", async (msg) => {
     const user = getCurrentUser(socket.id);
-    if (!user) return;
+    if (!user || !msg.trim()) return;
 
-    io.to(user.room).emit("message", formatMessage(user.username, msg));
+    const messageData = {
+      room: user.room,
+      username: user.username,
+      text: msg.trim(),
+      time: moment().format("HH:mm")
+    };
+
+    try {
+      await ChatMessage.create(messageData);
+    } catch (err) {
+      console.error("Error saving message:", err);
+    }
+
+    io.to(user.room).emit("message", messageData);
   });
 
+  // Disconnessione
   socket.on("disconnect", () => {
     const user = userLeave(socket.id);
     if (user) {
-      io.to(user.room).emit(
-        "message",
-        formatMessage(botName, `${user.username} left the room`)
-      );
+      io.to(user.room).emit("message", {
+        username: botName,
+        text: `${user.username} left the room`,
+        time: moment().format("HH:mm")
+      });
 
       io.to(user.room).emit("roomUsers", {
         room: user.room,
@@ -78,4 +123,4 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`LUXA Multi-Country Chat Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`LUXA Core & Chat Server running on port ${PORT}`));

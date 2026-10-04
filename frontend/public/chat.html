@@ -3,47 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>LUXA Community Chat Room</title>
+  <title>LUXA Community Chat</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div class="chat-container">
-    <!-- TOP HEADER -->
     <header class="chat-header">
       <div class="chat-header-info">
+        <button type="button" class="btn-nav" id="backBtn" onclick="goBack()">⬅</button>
         <img id="roomFlag" src="flags/1x1/un.svg" alt="Flag" class="header-flag" onerror="this.src='flags/1x1/un.svg'" />
         <div>
-          <h1 id="room-name">Global Room</h1>
-          <div class="chat-header-sub"><span id="userCount">1</span> miners online</div>
+          <h1 id="room-name">Global</h1>
+          <div class="chat-header-sub">
+            <span id="connStatus" class="status-dot offline"></span>
+            <span id="userCount">1</span> online
+          </div>
         </div>
       </div>
 
       <div class="chat-header-actions">
-        <button type="button" class="btn-toggle-sidebar" id="toggleUsersBtn" onclick="toggleSidebar()">👥 Users</button>
-        <button type="button" class="btn-leave" id="leave-btn">Leave</button>
+        <button type="button" class="btn-toggle-sidebar" onclick="toggleSidebar()">👥</button>
+        <button type="button" class="btn-close-app" onclick="closeMiniApp()">✕</button>
       </div>
     </header>
 
-    <!-- MAIN CHAT BODY -->
     <main class="chat-main">
-      <!-- SIDEBAR MINERS -->
       <aside class="chat-sidebar" id="chatSidebar">
-        <h3>Connected Room</h3>
-        <div style="display: flex; align-items: center; gap: 8px; font-weight: bold; color: #fff;">
-          <img id="sidebarFlag" src="flags/1x1/un.svg" style="width: 18px; height: 18px; border-radius: 50%;" />
-          <span id="sidebarRoomTitle">Global</span>
-        </div>
-
         <h3>Active Miners</h3>
         <ul id="users"></ul>
       </aside>
 
-      <!-- MESSAGES SCROLL AREA -->
       <div class="chat-messages" id="chatMessages"></div>
     </main>
 
-    <!-- FORM INPUT -->
     <footer class="chat-form-container">
       <form id="chat-form">
         <input
@@ -59,7 +52,6 @@
     </footer>
   </div>
 
-  <!-- CDN per Qs e Socket.io (Caricati prima del file JS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="js/main.js"></script>
