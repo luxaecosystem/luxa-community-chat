@@ -10,6 +10,7 @@
 <body>
   <div class="join-container">
     <header class="join-header">
+      <button type="button" class="btn-close-app-corner" onclick="closeApp()" title="Close">✕</button>
       <h1>🌐 LUXA COMMUNITY</h1>
       <p>Connect to the sovereign multi-language network</p>
     </header>
@@ -117,6 +118,15 @@
       const query = document.getElementById('countrySearch').value.toLowerCase().trim();
       const filtered = countries.filter(c => c.name.toLowerCase().includes(query) || c.room.toLowerCase().includes(query));
       renderCountries(filtered);
+    }
+
+    function closeApp() {
+      const tg = window.Telegram?.WebApp;
+      if (tg && typeof tg.close === 'function') {
+        tg.close();
+      } else {
+        window.close();
+      }
     }
 
     // Rileva in automatico l'utente da Telegram
