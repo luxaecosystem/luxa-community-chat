@@ -9,8 +9,8 @@
 </head>
 <body>
   <div class="join-container">
+    <button type="button" class="btn-close-app-corner" onclick="closeApp()" title="Close" aria-label="Close app">✕</button>
     <header class="join-header">
-      <button type="button" class="btn-close-app-corner" onclick="closeApp()" title="Close">✕</button>
       <h1>🌐 LUXA COMMUNITY</h1>
       <p>Connect to the sovereign multi-language network</p>
     </header>
@@ -83,6 +83,7 @@
     ];
 
     let currentSelectedCode = 'un';
+    let closeRequested = false;
 
     function renderCountries(list) {
       const grid = document.getElementById('countryGrid');
@@ -121,11 +122,19 @@
     }
 
     function closeApp() {
+      if (closeRequested) return;
+      closeRequested = true;
+
       const tg = window.Telegram?.WebApp;
-      if (tg && typeof tg.close === 'function') {
+      if (tg && tg.platform !== 'unknown' && typeof tg.close === 'function') {
         tg.close();
       } else {
-        window.close();
+        closeRequested = false;
+        if (window.opener) {
+          window.close();
+        } else {
+          window.history.back();
+        }
       }
     }
 

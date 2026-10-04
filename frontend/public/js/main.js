@@ -26,6 +26,7 @@ if (isArabic && msgInput) {
 
 // Gestione compatibile con Telegram WebApp v6.0 e v6.1+
 const tg = window.Telegram?.WebApp;
+let closeRequested = false;
 if (tg) {
   tg.ready();
   tg.expand();
@@ -43,9 +44,13 @@ function goBack() {
 }
 
 function closeMiniApp() {
-  if (tg && typeof tg.close === 'function') {
+  if (closeRequested) return;
+  closeRequested = true;
+
+  if (tg && tg.platform !== 'unknown' && typeof tg.close === 'function') {
     tg.close();
   } else {
+    closeRequested = false;
     window.location.href = 'index.html';
   }
 }

@@ -36,6 +36,7 @@ body {
    INDEX / JOIN SCREEN
    ============================================================ */
 .join-container {
+  position: relative;
   width: 94%;
   max-width: 500px;
   background: var(--card-bg);
@@ -48,17 +49,16 @@ body {
 }
 
 .join-header {
-  position: relative;
   text-align: center;
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 14px;
+  padding: 38px 0 14px;
 }
 
 .btn-close-app-corner {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: 12px;
+  right: 12px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #94a3b8;
