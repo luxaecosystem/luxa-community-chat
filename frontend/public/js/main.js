@@ -24,14 +24,17 @@ if (isArabic && msgInput) {
   msgInput.placeholder = 'اكتب رسالتك هنا...';
 }
 
-// Integrazione pulsante Indietro nativo di Telegram
+// Gestione compatibile con Telegram WebApp v6.0 e v6.1+
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
-  if (tg.BackButton) {
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => goBack());
+
+  if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
+    if (tg.BackButton) {
+      tg.BackButton.show();
+      tg.BackButton.onClick(() => goBack());
+    }
   }
 }
 
@@ -40,7 +43,7 @@ function goBack() {
 }
 
 function closeMiniApp() {
-  if (tg && tg.close) {
+  if (tg && typeof tg.close === 'function') {
     tg.close();
   } else {
     window.location.href = 'index.html';
@@ -102,8 +105,8 @@ chatForm.addEventListener('submit', (e) => {
   msgInput.value = '';
   msgInput.focus();
 
-  if (tg?.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred('light');
+  if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
+    tg.HapticFeedback?.impactOccurred('light');
   }
 });
 

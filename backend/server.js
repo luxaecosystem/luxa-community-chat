@@ -32,7 +32,16 @@ const chatMessageSchema = new mongoose.Schema({
 const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" }));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 const server = http.createServer(app);
 
@@ -42,7 +51,8 @@ const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST"]
   },
-  transports: ["polling", "websocket"]
+  transports: ["polling", "websocket"],
+  allowEIO3: true
 });
 
 const botName = "LUXA Bot";
