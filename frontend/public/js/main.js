@@ -32,9 +32,9 @@ if (isArabic && msgInput) {
   msgInput.placeholder = 'اكتب رسالتك هنا...';
 }
 
-// Configurazione Endpoint Backend (Alwaysdata o Localhost)
-const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const BACKEND_URL = isLocal ? 'http://localhost:3000' : 'https://luxaecosystem.alwaysdata.net';
+const BACKEND_URL = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  ? 'http://localhost:3000'
+  : 'https://luxaecosystem.alwaysdata.net';
 
 const socket = io(BACKEND_URL, {
   transports: ['websocket', 'polling']
