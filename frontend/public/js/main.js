@@ -6,27 +6,96 @@ const userCount = document.getElementById('userCount');
 const roomFlag = document.getElementById('roomFlag');
 const connStatus = document.getElementById('connStatus');
 const msgInput = document.getElementById('msg');
+const backBtn = document.getElementById('backBtn');
+const closeBtn = document.getElementById('closeBtn');
+const sidebarTitle = document.getElementById('sidebarTitle');
+const onlineLabel = document.getElementById('onlineLabel');
 
 // Parametri URL
 const { username, room, code } = Qs.parse(location.search, { ignoreQueryPrefix: true });
-const activeUser = username || 'Miner';
+const activeUser = (username || 'Miner').trim();
 const activeRoom = room || 'Global';
 const activeCode = (code || 'un').toLowerCase();
 
 if (roomFlag) roomFlag.src = `flags/1x1/${activeCode}.svg`;
 if (roomName) roomName.innerText = activeRoom;
 
-// Supporto RTL automatico per lingue arabe
+// Dizionario Multilingua per l'interfaccia Client
+const uiTranslations = {
+  ar: {
+    placeholder: 'اكتب رسالتك هنا... (الروابط ممنوعة)',
+    sidebar: 'المعدنون النشطون',
+    online: 'متصل',
+    dir: 'rtl'
+  },
+  fr: {
+    placeholder: 'Écrivez votre message ici... (liens interdits)',
+    sidebar: 'Mineurs Actifs',
+    online: 'en ligne',
+    dir: 'ltr'
+  },
+  es: {
+    placeholder: 'Escribe tu mensaje aquí... (enlaces prohibidos)',
+    sidebar: 'Mineros Activos',
+    online: 'en línea',
+    dir: 'ltr'
+  },
+  it: {
+    placeholder: 'Scrivi un messaggio... (link esterni vietati)',
+    sidebar: 'Miner Attivi',
+    online: 'online',
+    dir: 'ltr'
+  },
+  en: {
+    placeholder: 'Type message here... (links prohibited)',
+    sidebar: 'Active Miners',
+    online: 'online',
+    dir: 'ltr'
+  }
+};
+
 const arabicCodes = ['sa', 'ae', 'ma', 'dz', 'eg', 'qa', 'tn'];
-const isArabic = arabicCodes.includes(activeCode);
-if (isArabic && msgInput) {
-  msgInput.dir = 'rtl';
-  msgInput.placeholder = 'اكتب رسالتك هنا...';
+let lang = 'en';
+if (arabicCodes.includes(activeCode)) lang = 'ar';
+else if (activeCode === 'fr') lang = 'fr';
+else if (activeCode === 'es') lang = 'es';
+else if (activeCode === 'it') lang = 'it';
+
+const currentUI = uiTranslations[lang] || uiTranslations.en;
+
+// Applica lingua e direzione (RTL per Arabo)
+if (msgInput) {
+  msgInput.placeholder = currentUI.placeholder;
+  msgInput.dir = currentUI.dir;
+}
+if (sidebarTitle) sidebarTitle.innerText = currentUI.sidebar;
+if (onlineLabel) onlineLabel.innerText = currentUI.online;
+if (currentUI.dir === 'rtl') {
+  chatMessages.dir = 'rtl';
 }
 
-// Gestione compatibile con Telegram WebApp v6.0 e v6.1+
+// -------------------------------------------------------------
+// GESTIONE NAVIGAZIONE: Tasto Indietro e Tasto Chiudi
+// -------------------------------------------------------------
+function goBack() {
+  // Ritorna a index.html in modo garantito sia su Browser che su Vercel/Telegram
+  window.location.replace('index.html');
+}
+
+function closeMiniApp() {
+  const tg = window.Telegram?.WebApp;
+  if (tg && typeof tg.close === 'function') {
+    tg.close();
+  } else {
+    window.location.replace('index.html');
+  }
+}
+
+if (backBtn) backBtn.addEventListener('click', goBack);
+if (closeBtn) closeBtn.addEventListener('click', closeMiniApp);
+
+// Telegram WebApp SDK compatibilità v6.0+ e v6.1+
 const tg = window.Telegram?.WebApp;
-let closeRequested = false;
 if (tg) {
   tg.ready();
   tg.expand();
@@ -34,35 +103,19 @@ if (tg) {
   if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
     if (tg.BackButton) {
       tg.BackButton.show();
-      tg.BackButton.onClick(() => goBack());
+      tg.BackButton.onClick(goBack);
     }
   }
 }
 
-function goBack() {
-  window.location.href = 'index.html';
-}
-
-function closeMiniApp() {
-  if (closeRequested) return;
-  closeRequested = true;
-
-  if (tg && tg.platform !== 'unknown' && typeof tg.close === 'function') {
-    tg.close();
-  } else {
-    closeRequested = false;
-    window.location.href = 'index.html';
-  }
-}
-
-// Connessione Socket.io corretta per Alwaysdata (Long-Polling prioritario)
+// -------------------------------------------------------------
+// CONNESSIONE BACKEND
+// -------------------------------------------------------------
 const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const BACKEND_URL = isLocal
-  ? 'http://localhost:3000'
-  : 'https://ljzqww-3000.csb.app';
+const BACKEND_URL = isLocal ? 'http://localhost:3000' : 'https://ljzqww-3000.csb.app';
 
 const socket = io(BACKEND_URL, {
-  transports: ['polling', 'websocket'], // Risolve l'errore di WebSocket failed
+  transports: ['polling', 'websocket'],
   reconnection: true,
   reconnectionAttempts: 15,
   reconnectionDelay: 1000
@@ -74,7 +127,6 @@ socket.on('connect', () => {
     connStatus.classList.add('online');
   }
 
-  // Entra nella stanza
   socket.emit('joinRoom', {
     username: activeUser,
     room: activeRoom,
@@ -89,20 +141,17 @@ socket.on('disconnect', () => {
   }
 });
 
-// Ricezione cronologia messaggi da MongoDB
 socket.on('chatHistory', (historyMessages) => {
   chatMessages.innerHTML = '';
   historyMessages.forEach((m) => outputMessage(m));
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-// Ricezione nuovo messaggio
 socket.on('message', (message) => {
   outputMessage(message);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-// Invio messaggio
 chatForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const text = msgInput.value.trim();
@@ -117,23 +166,32 @@ chatForm.addEventListener('submit', (e) => {
   }
 });
 
-// Render dei messaggi
+// -------------------------------------------------------------
+// RENDER DEI MESSAGGI CON BADGE (CITIZEN 0 / MODERATOR)
+// -------------------------------------------------------------
 function outputMessage(message) {
   const div = document.createElement('div');
   const isMine = message.username === activeUser;
-  const isBot = message.username === 'LUXA Bot';
+  const isBot = message.role === 'bot' || message.username.includes('Bot') || message.username.includes('Guardian');
 
   if (isBot) {
     div.className = 'system-message';
     div.innerText = message.text;
   } else {
     div.className = `message ${isMine ? 'mine' : 'other'}`;
-    if (isArabic) div.dir = 'rtl';
+
+    // Creazione del badge
+    let badgeHtml = '';
+    if (message.role === 'citizen0') {
+      badgeHtml = '<span class="badge-role badge-citizen0">👑 Citizen 0</span>';
+    } else if (message.role === 'moderator') {
+      badgeHtml = '<span class="badge-role badge-mod">🛡️ MOD</span>';
+    }
 
     div.innerHTML = `
       <div class="meta">
-        <span>${escapeHtml(message.username)}</span>
-        <span>${message.time || ''}</span>
+        <span class="user-handle">${escapeHtml(message.username)} ${badgeHtml}</span>
+        <span class="time-stamp">${message.time || ''}</span>
       </div>
       <div class="text">${escapeHtml(message.text)}</div>
     `;
@@ -148,7 +206,10 @@ socket.on('roomUsers', ({ users }) => {
   userList.innerHTML = '';
   users.forEach((u) => {
     const li = document.createElement('li');
-    li.innerText = u.username;
+    let badge = '';
+    if (u.role === 'citizen0') badge = ' 👑';
+    else if (u.role === 'moderator') badge = ' 🛡️';
+    li.innerText = `${u.username}${badge}`;
     userList.appendChild(li);
   });
 });

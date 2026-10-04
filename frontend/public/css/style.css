@@ -493,6 +493,8 @@ body {
   height: 34px;
   font-size: 14px;
   cursor: pointer;
+  position: relative;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -518,4 +520,29 @@ body {
 .status-dot.offline {
   background-color: #ef4444;
   box-shadow: 0 0 6px #ef4444;
+}
+
+/* Badge per Citizen 0 e Moderatore */
+.badge-role {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 6px;
+  margin-left: 4px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-citizen0 {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.badge-mod {
+  background: linear-gradient(135deg, #00ffcc, #0066ff);
+  color: #05050e;
+  box-shadow: 0 0 6px rgba(0, 255, 204, 0.4);
 }

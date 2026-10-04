@@ -11,26 +11,26 @@
   <div class="chat-container">
     <header class="chat-header">
       <div class="chat-header-info">
-        <button type="button" class="btn-nav" id="backBtn" onclick="goBack()">⬅</button>
+        <button type="button" class="btn-nav" id="backBtn" aria-label="Go Back">⬅</button>
         <img id="roomFlag" src="flags/1x1/un.svg" alt="Flag" class="header-flag" onerror="this.src='flags/1x1/un.svg'" />
         <div>
           <h1 id="room-name">Global</h1>
           <div class="chat-header-sub">
             <span id="connStatus" class="status-dot offline"></span>
-            <span id="userCount">1</span> online
+            <span id="userCount">1</span> <span id="onlineLabel">online</span>
           </div>
         </div>
       </div>
 
       <div class="chat-header-actions">
         <button type="button" class="btn-toggle-sidebar" onclick="toggleSidebar()">👥</button>
-        <button type="button" class="btn-close-app" onclick="closeMiniApp()">✕</button>
+        <button type="button" class="btn-close-app" id="closeBtn" aria-label="Close">✕</button>
       </div>
     </header>
 
     <main class="chat-main">
       <aside class="chat-sidebar" id="chatSidebar">
-        <h3>Active Miners</h3>
+        <h3 id="sidebarTitle">Active Miners</h3>
         <ul id="users"></ul>
       </aside>
 
