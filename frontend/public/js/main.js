@@ -114,7 +114,7 @@ if (tg) {
 const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const BACKEND_URL = isLocal
   ? 'http://localhost:3000'
-  : 'https://luxacommunitychat-lf0vkpdh.b4a.run';
+  : 'https://communitychat.alwaysdata.net';
 
 const socket = io(BACKEND_URL, {
   transports: ['polling', 'websocket'],
