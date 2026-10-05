@@ -132,5 +132,9 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`LUXA Core & Chat Server running on port ${PORT}`));
+const PORT = process.env.PORT || 8100;
+const IP = process.env.IP || '::';
+
+server.listen(PORT, IP, () => {
+  console.log(`Server LUXA Chat online su porta ${PORT}`);
+});
